@@ -1,0 +1,167 @@
+name: Bootstrap Android Project Structure
+
+on:
+  workflow_dispatch:  # manual trigger only
+
+permissions:
+  contents: write     # allows committing files
+
+jobs:
+  create-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create directory structure
+        run: |
+          mkdir -p app/src/main/java/com/example/githubfileexplorer/data
+          mkdir -p app/src/main/java/com/example/githubfileexplorer/api
+          mkdir -p app/src/main/res/layout
+          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/drawable
+          mkdir -p gradle/wrapper
+          mkdir -p .github/workflows  # already exists, but safe
+
+      - name: Create placeholder files
+        run: |
+          # Gradle wrapper properties
+          cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-bin.zip
+          zipStoreBase=GRADLE_USER_HOME
+          zipStorePath=wrapper/dists
+          EOF
+          
+          # Project-level build.gradle
+          cat > build.gradle << 'EOF'
+          plugins {
+              id 'com.android.application' version '8.2.0' apply false
+              id 'org.jetbrains.kotlin.android' version '1.9.20' apply false
+          }
+          EOF
+          
+          # Settings.gradle
+          cat > settings.gradle << 'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = "GitHubFileExplorer"
+          include ':app'
+          EOF
+          
+          # Module-level build.gradle
+          cat > app/build.gradle << 'EOF'
+          plugins {
+              id 'com.android.application'
+              id 'org.jetbrains.kotlin.android'
+          }
+          android {
+              namespace 'com.example.githubfileexplorer'
+              compileSdk 34
+              defaultConfig {
+                  applicationId "com.example.githubfileexplorer"
+                  minSdk 21
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0"
+              }
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                  }
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+              kotlinOptions {
+                  jvmTarget = '17'
+              }
+              buildFeatures {
+                  viewBinding true
+              }
+          }
+          dependencies {
+              implementation 'androidx.core:core-ktx:1.12.0'
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'com.google.android.material:material:1.11.0'
+              implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+              implementation 'com.squareup.retrofit2:retrofit:2.11.0'
+              implementation 'com.squareup.retrofit2:converter-moshi:2.11.0'
+              implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+              implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
+              implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.7.0'
+              implementation 'androidx.recyclerview:recyclerview:1.3.2'
+          }
+          EOF
+          
+          # AndroidManifest.xml
+          cat > app/src/main/AndroidManifest.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET" />
+              <application
+                  android:allowBackup="true"
+                  android:icon="@mipmap/ic_launcher"
+                  android:label="GitHub File Explorer"
+                  android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+                  <activity android:name=".MainActivity" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+          
+          # Empty placeholder Kotlin files (you will replace these)
+          echo "// TODO: Add your code here" > app/src/main/java/com/example/githubfileexplorer/MainActivity.kt
+          echo "// TODO: Add your code here" > app/src/main/java/com/example/githubfileexplorer/MainViewModel.kt
+          echo "// TODO: Add your code here" > app/src/main/java/com/example/githubfileexplorer/FileAdapter.kt
+          echo "// TODO: Add your code here" > app/src/main/java/com/example/githubfileexplorer/data/GitHubContent.kt
+          echo "// TODO: Add your code here" > app/src/main/java/com/example/githubfileexplorer/api/GitHubApiService.kt
+          echo "// TODO: Add your code here" > app/src/main/java/com/example/githubfileexplorer/api/RetrofitClient.kt
+          
+          # Layout XML placeholders
+          echo "<!-- TODO: activity_main.xml -->" > app/src/main/res/layout/activity_main.xml
+          echo "<!-- TODO: item_file.xml -->" > app/src/main/res/layout/item_file.xml
+          
+          # colors.xml
+          cat > app/src/main/res/values/colors.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="purple_200">#FFBB86FC</color>
+              <color name="purple_500">#FF6200EE</color>
+              <color name="purple_700">#FF3700B3</color>
+              <color name="teal_200">#FF03DAC5</color>
+              <color name="teal_700">#FF018786</color>
+              <color name="black">#FF000000</color>
+              <color name="white">#FFFFFFFF</color>
+              <color name="red">#F44336</color>
+          </resources>
+          EOF
+          
+          # Create an empty .gitkeep for drawable folder
+          touch app/src/main/res/drawable/.gitkeep
+
+      - name: Commit and push structure
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Bootstrap Android project structure with placeholders" || echo "No changes to commit"
+          git push
